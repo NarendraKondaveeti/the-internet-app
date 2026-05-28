@@ -1,0 +1,2 @@
+This is a beginner friendly upload sample file.
+Playwright will upload this file in file upload tests.

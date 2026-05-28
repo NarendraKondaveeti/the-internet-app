@@ -1,0 +1,76 @@
+# Azure DevOps pipeline; ee file Azure CI/CD lo tests automatic ga run cheyyadaniki use avtundi
+trigger:
+  branches:
+    include:
+      - main  # main branch ki push ayithe pipeline trigger avtundi
+      - develop  # develop branch ki push ayithe kuda pipeline trigger avtundi
+
+pr:
+  branches:
+    include:
+      - main  # main branch PR create/update ayithe validation run avtundi
+
+pool:
+  vmImage: "ubuntu-latest"  # Microsoft hosted Linux agent use chestamu because Playwright browsers stable ga run avtayi
+
+variables:
+  pythonVersion: "3.11"  # Python version central variable ga maintain chestamu
+  TEST_ENV: "qa"  # framework config lo qa environment select cheyyadaniki variable
+
+stages:
+  - stage: Install  # first stage dependencies install cheyyadaniki
+    displayName: "Install Dependencies"  # Azure UI lo readable stage name
+    jobs:
+      - job: InstallJob  # single job for installation
+        displayName: "Prepare Python and Playwright"  # job name Azure UI lo kanipistundi
+        steps:
+          - task: UsePythonVersion@0  # Azure built-in task; Python version install/select chestundi
+            inputs:
+              versionSpec: "$(pythonVersion)"  # variable nundi Python version use chestamu
+            displayName: "Use Python $(pythonVersion)"  # readable step name
+
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+              python -m playwright install --with-deps chromium
+            displayName: "Install framework dependencies"  # pip and browser install step
+
+  - stage: Test  # second stage actual automation tests run chestundi
+    displayName: "Run Automation Tests"  # Azure UI stage name
+    dependsOn: Install  # Install stage complete ayyaka matrame run avtundi
+    jobs:
+      - job: UiApiTests  # UI + API tests run cheyyadaniki job
+        displayName: "Pytest Playwright Suite"  # readable job name
+        steps:
+          - task: UsePythonVersion@0  # each job fresh agent kabatti Python select cheyyali
+            inputs:
+              versionSpec: "$(pythonVersion)"  # configured Python version use chestamu
+            displayName: "Use Python $(pythonVersion)"  # step title
+
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+              python -m playwright install --with-deps chromium
+              pytest -m "smoke or regression" -n auto --env $(TEST_ENV)
+            displayName: "Execute pytest suite in parallel"  # parallel pytest execution command
+
+          - task: PublishBuildArtifacts@1  # Azure artifact publish task
+            condition: always()  # tests fail ayina reports publish avvali
+            inputs:
+              PathtoPublish: "reports"  # HTML reports folder
+              ArtifactName: "html-reports"  # artifact display name
+            displayName: "Publish HTML report"  # report publish step
+
+          - task: PublishBuildArtifacts@1  # screenshots publish cheyyadaniki task
+            condition: always()  # failure details always available undadaniki
+            inputs:
+              PathtoPublish: "screenshots"  # screenshots folder
+              ArtifactName: "failure-screenshots"  # artifact name
+            displayName: "Publish screenshots"  # screenshots step name
+
+          - task: PublishBuildArtifacts@1  # traces publish cheyyadaniki task
+            condition: always()  # traces pass/fail both lo useful kabatti always
+            inputs:
+              PathtoPublish: "traces"  # Playwright trace folder
+              ArtifactName: "playwright-traces"  # artifact name
+            displayName: "Publish traces"  # trace publish step

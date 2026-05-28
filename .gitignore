@@ -1,0 +1,11 @@
+__pycache__/
+.pytest_cache/
+.venv/
+reports/*.html
+screenshots/*.png
+logs/*.log
+downloads/*
+traces/*
+videos/*
+test-results/
+playwright-report/

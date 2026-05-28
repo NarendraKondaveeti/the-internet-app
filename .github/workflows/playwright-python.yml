@@ -1,0 +1,49 @@
+# GitHub Actions workflow; GitHub repository integration kosam use chestamu
+name: Python Playwright Automation  # Actions tab lo kanipinche workflow name
+
+on:
+  push:
+    branches: [main, develop]  # main/develop push ayithe run avtundi
+  pull_request:
+    branches: [main]  # main branch PR validation kosam run avtundi
+  workflow_dispatch:  # manual run button enable chestundi
+
+jobs:
+  automation-tests:
+    runs-on: ubuntu-latest  # Linux runner use chestamu because CI browser dependencies stable ga install avtayi
+    env:
+      TEST_ENV: qa  # framework config lo qa environment select cheyyadaniki env variable
+    steps:
+      - name: Checkout repository  # source code runner lo download cheyyadaniki step
+        uses: actions/checkout@v4  # official GitHub checkout action
+
+      - name: Setup Python  # Python install/select cheyyadaniki step
+        uses: actions/setup-python@v5  # official Python setup action
+        with:
+          python-version: "3.11"  # framework run cheyyadaniki Python version
+
+      - name: Install dependencies  # pip and Playwright browser install step
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run smoke and regression tests  # pytest execution step
+        run: pytest -m "smoke or regression" -n auto --env qa  # parallel execution with selected environment
+
+      - name: Upload reports  # HTML report artifact upload step
+        if: always()  # tests fail ayina report upload avvali
+        uses: actions/upload-artifact@v4  # official artifact action
+        with:
+          name: html-report  # artifact name
+          path: reports/  # report folder path
+
+      - name: Upload screenshots and traces  # debugging artifacts upload step
+        if: always()  # pass/fail both cases lo artifacts collect cheyyadaniki
+        uses: actions/upload-artifact@v4  # official artifact upload action
+        with:
+          name: debug-artifacts  # combined artifact name
+          path: |  # multi-line paths; screenshots, traces, videos upload chestundi
+            screenshots/
+            traces/
+            videos/

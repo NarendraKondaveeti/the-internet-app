@@ -1,0 +1,31 @@
+default: qa
+
+qa:
+  base_url: "https://the-internet.herokuapp.com"
+  api_base_url: "https://the-internet.herokuapp.com"
+  username: "tomsmith"
+  password: "SuperSecretPassword!"
+  basic_auth_username: "admin"
+  basic_auth_password: "admin"
+  headed: false
+  slow_mo: 150
+  browser: "chromium"
+  timeout: 10000
+  screenshot: "only-on-failure"
+  video: "retain-on-failure"
+  trace: "retain-on-failure"
+
+local:
+  base_url: "https://the-internet.herokuapp.com"
+  api_base_url: "https://the-internet.herokuapp.com"
+  username: "tomsmith"
+  password: "SuperSecretPassword!"
+  basic_auth_username: "admin"
+  basic_auth_password: "admin"
+  headed: true
+  slow_mo: 300
+  browser: "chromium"
+  timeout: 15000
+  screenshot: "on"
+  video: "on"
+  trace: "on"
